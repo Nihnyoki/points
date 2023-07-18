@@ -1,0 +1,35 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id":"https://www.mnganih.com/smile.schema.json",
+	"title":"Point service",
+	"description":"Point service schema",
+		"type": "object",
+		"properties": {
+			"personId":
+			{"type": "number"},
+			"name":
+			{"type": "string"},
+			"surname":
+			{"type": "string"},
+			"gender":
+			{"type": "string"},
+			"age":
+			{"type": "integer"},
+			"cellphone":
+			{"type": "string"},
+			"whatsapp":
+			{"type": "string"},
+			"email":
+			{"type": "string"}
+		},
+		"required": [
+			"personId",
+			"name",
+			"surname",
+			"gender",
+			"age",
+			"cellphone",
+			"whatsapp",
+			"email"
+		]
+}
