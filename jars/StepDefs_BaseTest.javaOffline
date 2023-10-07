@@ -1,0 +1,172 @@
+package steps.definitions;
+
+import com.points.point.Entities.Person;
+import com.points.point.Entities.Point;
+import io.cucumber.core.internal.com.fasterxml.jackson.core.JsonProcessingException;
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.Assert;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+
+import static io.restassured.RestAssured.given;
+public class StepDefs_BaseTest extends BaseTest {
+    @Given("the user details below:")
+    public void theUserDetailsBelow(DataTable dt) throws JsonProcessingException {
+        reqResDialog = new HashMap<>();
+        reqResDialog.put("person_req_json",getPayload(dt.asMap(),false));
+    }
+
+    @When("user is added to point service database")
+    public void user_is_added_to_point_service_database() {
+
+        reqResDialog.put("person_res_res",
+                given()
+                .accept("application/json")
+                .contentType("application/json")
+                .body(reqResDialog.get("person_req_json"))
+                .post()
+        );
+        reqResDialog.put("person_res_obj",
+                ((Response) reqResDialog.get("person_res_res"))
+                        .getBody()
+                        .as(Person.class));
+    }
+
+    @Then("check that the user is stored")
+    public void check_that_the_user_is_stored() {
+        Assert.assertEquals(((Person) reqResDialog.get("person_req_obj")).getPersonId(),
+                ((Person) reqResDialog.get("person_res_obj")).getPersonId());
+
+        Assert.assertEquals(((Person) reqResDialog.get("person_req_obj")).getAge(),
+                ((Person) reqResDialog.get("person_res_obj")).getAge());
+
+        Assert.assertEquals(((Person) reqResDialog.get("person_req_obj")).getName(),
+                ((Person) reqResDialog.get("person_res_obj")).getName());
+
+        Assert.assertEquals( ((Person) reqResDialog.get("person_req_obj")).getAge(),
+                ((Person) reqResDialog.get("person_res_obj")).getAge() );
+
+        System.out.println("Just.\n");
+    }
+
+    @Given("any person exists in the db:")
+    public void anyPersonExistsInTheDb(DataTable dt) throws JsonProcessingException {
+
+        Response res = given()
+                .formParams(getFormParams(dt))
+                .accept("application/json")
+                .get();
+
+        Person p =res.getBody().as(Person.class);
+
+        person_x.setPersonId(p.getPersonId());
+        person_x.setName(p.getName());
+        person_x.setSurname(p.getSurname());
+        person_x.setAge(p.getAge());
+        person_x.setGender(p.getGender());
+        person_x.setCellphone(p.getCellphone());
+        person_x.setWhatsapp(p.getWhatsapp());
+        person_x.setEmail(p.getEmail());
+    }
+
+    @When("this person posts a point with below details:")
+    public void thisPersonPostsAPointWithBelowDetails(DataTable dt) throws JsonProcessingException {
+
+        if(!dt.asMap().get("_contextCall").isEmpty()){
+            reqResDialog = new HashMap<>();
+            reqResDialog.put("point_req_json",getPayload(dt.asMap(),true));
+        } else {
+            reqResDialog.put("point_req_json",getPayload(dt.asMap(),false));
+        }
+        reqResDialog.put("point_res_res",
+                given()
+                .accept("application/json")
+                .contentType("application/json")
+                .body(reqResDialog.get("point_req_json"))
+                .post());
+        reqResDialog.put("point_res_obj",
+                ((Response) reqResDialog.get("point_res_res"))
+                        .getBody()
+                        .as(Point.class));
+    }
+
+    @Then("verify that the point is retrievable via the {string} service end_point")
+    public void verifyThatThePointIsRetrievableViaTheServiceEnd_point(String endPoint) {
+        reqResDialog.put("point_getres_obj",
+                given()
+                        .accept("application/json")
+                        .queryParam("Point-Call",((Point) reqResDialog.get("point_req_obj")).getPointCall())
+                        .queryParam("personId",((Point) reqResDialog.get("point_req_obj")).getPersonId())
+                        .get(endPoint).as(Point.class));
+
+        Assert.assertEquals(
+                ((Point) reqResDialog.get("point_req_obj")).getNote(),
+                ((Point) reqResDialog.get("point_getres_obj")).getNote()
+        );
+
+        Assert.assertEquals(
+                ((Point) reqResDialog.get("point_req_obj")).getSubject(),
+                ((Point) reqResDialog.get("point_getres_obj")).getSubject()
+        );
+    }
+
+    @Given("the users image {} is {}")
+    public void theUsersImageIs(String filename_key, String filename_val) {
+
+        Response res = given()
+                .queryParam(filename_key, filename_val)
+                .queryParam("file_id", "dummy_value_not_used")
+                .when()
+                .get();
+
+        Assert.assertNotNull(res.getBody());
+    }
+
+    @Given("a user uploads image of type {string}:")
+    public void aUserUploadsImageOfType(String contentType, DataTable requestParams) throws IOException {
+
+        requestParams.asMap().forEach((s, s2) -> {
+            if(!s.equals("filename")) {
+                formParamHashMap.put(s, s2);
+            }
+            if (s.equals("filename")) {
+                filename = new String[]{s, s2};
+            }
+            if (s.equals("_service")){
+                setEndPoint(s2);
+            }
+        });
+        System.out.println("filename[filename.length-1] * this.service : "+filename[filename.length-1]+" * "+this.service);
+        Response res = given()
+                .formParams(formParamHashMap)
+                .multiPart("file",
+                        String.valueOf(filename[filename.length-1]),
+                        getMultipartFile(filename[filename.length-1],contentType.toString()).getBytes())
+                .contentType(ContentType.MULTIPART)
+                .when()
+                .post();
+        Assert.assertNull(res.getBody());
+    }
+
+    public MultipartFile getMultipartFile(String filename, String contentType) {
+
+        File file = new File(System.getProperty("user.dir") + "src" + File.separator + "test" + File.separator +
+                "resources" + File.separator + "features" + File.separator + "files" + File.separator + filename);
+
+        MultipartFile multipartFile = new MockMultipartFile(file.getName(),
+                file.getName(),
+                contentType,
+                file.getAbsolutePath().getBytes()
+        );
+        return multipartFile;
+    }
+}

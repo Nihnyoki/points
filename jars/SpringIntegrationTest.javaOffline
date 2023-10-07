@@ -1,0 +1,10 @@
+package steps.definitions;
+
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest(classes = {steps.definitions.StepDefs.class, hooks.Ops.class})/*(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)*/
+@CucumberContextConfiguration
+public class SpringIntegrationTest {
+
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/Point",
+  "definitions": {
+    "Point": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pointCall": {
+          "type": "string"
+        },
+        "personId": {
+          "type": "integer"
+        },
+        "coordinates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "mood": {
+          "type": "string"
+        },
+        "category": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subject": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "currentDateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "pointDateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "medias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Media"
+          }
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Point"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "mood",
+        "note",
+        "personId",
+        "pointCall",
+        "subject"
+      ],
+      "title": "Point"
+    },
+    "Media": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mediaId": {
+          "type": "string"
+        },
+        "mediaPointCall": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "fileType": {
+          "type": "string"
+        },
+        "fileSize": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "fileSize",
+        "fileType",
+        "filename",
+        "mediaId",
+        "mediaPointCall"
+      ],
+      "title": "Media"
+    }
+  },
+  "properties": {
+    "Point": {
+      "$ref": "#/definitions/Point",
+      "description": ""
+    },
+    "Media": {
+      "$ref": "#/definitions/Media",
+      "description": ""
+    }
+  }
+}
